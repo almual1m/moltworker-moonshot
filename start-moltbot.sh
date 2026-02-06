@@ -226,8 +226,10 @@ if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_APP_TOKEN) {
 // Usage: Set AI_GATEWAY_BASE_URL or ANTHROPIC_BASE_URL to your endpoint like:
 //   https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/anthropic
 //   https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/openai
+//   https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/moonshot
 const baseUrl = (process.env.AI_GATEWAY_BASE_URL || process.env.ANTHROPIC_BASE_URL || '').replace(/\/+$/, '');
 const isOpenAI = baseUrl.endsWith('/openai');
+const isMoonshot = baseUrl.endsWith('/moonshot');
 
 if (isOpenAI) {
     // Create custom openai provider config with baseUrl override
@@ -250,6 +252,27 @@ if (isOpenAI) {
     config.agents.defaults.models['openai/gpt-5'] = { alias: 'GPT-5' };
     config.agents.defaults.models['openai/gpt-4.5-preview'] = { alias: 'GPT-4.5' };
     config.agents.defaults.model.primary = 'openai/gpt-5.2';
+} else if (isMoonshot) {
+    // Create custom moonshot provider config with baseUrl override
+    // Moonshot uses OpenAI-compatible API
+    console.log('Configuring Moonshot provider with base URL:', baseUrl);
+    config.models = config.models || {};
+    config.models.providers = config.models.providers || {};
+    config.models.providers.moonshot = {
+        baseUrl: baseUrl,
+        api: 'openai-responses',
+        models: [
+            { id: 'moonshot-v1-128k', name: 'Moonshot v1 128K', contextWindow: 128000 },
+            { id: 'moonshot-v1-32k', name: 'Moonshot v1 32K', contextWindow: 32000 },
+            { id: 'moonshot-v1-8k', name: 'Moonshot v1 8K', contextWindow: 8000 },
+        ]
+    };
+    // Add models to the allowlist so they appear in /models
+    config.agents.defaults.models = config.agents.defaults.models || {};
+    config.agents.defaults.models['moonshot/moonshot-v1-128k'] = { alias: 'Moonshot 128K' };
+    config.agents.defaults.models['moonshot/moonshot-v1-32k'] = { alias: 'Moonshot 32K' };
+    config.agents.defaults.models['moonshot/moonshot-v1-8k'] = { alias: 'Moonshot 8K' };
+    config.agents.defaults.model.primary = 'moonshot/moonshot-v1-128k';
 } else if (baseUrl) {
     console.log('Configuring Anthropic provider with base URL:', baseUrl);
     config.models = config.models || {};
