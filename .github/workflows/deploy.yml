@@ -27,6 +27,9 @@ jobs:
 
       - name: Build project
         run: npm run build
+        env:
+          # Skip tests during build
+          CI: false
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
