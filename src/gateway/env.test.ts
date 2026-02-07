@@ -57,6 +57,18 @@ describe('buildEnvVars', () => {
     expect(result.AI_GATEWAY_BASE_URL).toBe('https://gateway.example.com/anthropic');
   });
 
+  it('maps AI_GATEWAY_API_KEY to MOONSHOT_API_KEY for Moonshot gateway', () => {
+    const env = createMockEnv({
+      AI_GATEWAY_API_KEY: 'sk-moonshot-key',
+      AI_GATEWAY_BASE_URL: 'https://gateway.ai.cloudflare.com/v1/123/my-gw/moonshot',
+    });
+    const result = buildEnvVars(env);
+    expect(result.MOONSHOT_API_KEY).toBe('sk-moonshot-key');
+    expect(result.MOONSHOT_BASE_URL).toBe('https://gateway.ai.cloudflare.com/v1/123/my-gw/moonshot');
+    expect(result.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(result.OPENAI_API_KEY).toBeUndefined();
+  });
+
   it('AI_GATEWAY_* takes precedence over direct provider keys for OpenAI', () => {
     const env = createMockEnv({
       AI_GATEWAY_API_KEY: 'gateway-key',

@@ -258,15 +258,20 @@ if (isOpenAI) {
     console.log('Configuring Moonshot provider with base URL:', baseUrl);
     config.models = config.models || {};
     config.models.providers = config.models.providers || {};
-    config.models.providers.moonshot = {
+    const moonshotConfig = {
         baseUrl: baseUrl,
-        api: 'openai-responses',
+        api: 'openai-chat',
         models: [
             { id: 'moonshot-v1-128k', name: 'Moonshot v1 128K', contextWindow: 128000 },
             { id: 'moonshot-v1-32k', name: 'Moonshot v1 32K', contextWindow: 32000 },
             { id: 'moonshot-v1-8k', name: 'Moonshot v1 8K', contextWindow: 8000 },
         ]
     };
+    // Include API key in provider config (required for custom providers)
+    if (process.env.MOONSHOT_API_KEY) {
+        moonshotConfig.apiKey = process.env.MOONSHOT_API_KEY;
+    }
+    config.models.providers.moonshot = moonshotConfig;
     // Add models to the allowlist so they appear in /models
     config.agents.defaults.models = config.agents.defaults.models || {};
     config.agents.defaults.models['moonshot/moonshot-v1-128k'] = { alias: 'Moonshot 128K' };
